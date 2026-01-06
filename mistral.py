@@ -1,8 +1,8 @@
 import json
 from mistralai import Mistral
 
-# 🔑 Mets ta clé API Mistral ici
-MISTRAL_API_KEY = "gHeHiGm5VjXbfLn00zy6p0eDhjFHQdlN"
+#  Mets ta clé API Mistral ici
+MISTRAL_API_KEY = "VOTRE_CLE_API_MISTRAL"
 
 client = Mistral(api_key=MISTRAL_API_KEY)
 
