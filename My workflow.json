@@ -1,0 +1,546 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9c3e8718-9448-40ad-b85d-2813afa1e501",
+              "name": "ebay_search_url",
+              "value": "=https://www.ebay.fr/sch/i.html?_nkw=+{{ $json.body.type }}+{{ $json.body.brand }}+{{ $json.body.material }}+{{ $json.body.size }}+{{ $json.body.color }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1104,
+        -224
+      ],
+      "id": "b3510073-5824-40fa-a5c6-0d67879f6878",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "url": "=https://r.jina.ai/{{ $json.ebay_search_url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Return-Format",
+              "value": "html"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -848,
+        -224
+      ],
+      "id": "2f2a7513-a53f-470d-9829-36ee06adebf1",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vymindFjXMlQRsBy",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cards = $json.cards;\n\nif (!Array.isArray(cards)) {\n  return [{ error: 'cards n’est pas un tableau' }];\n}\n\nconst results = [];\n\nfor (const card of cards) {\n  if (!card) continue;\n\n  const lines = String(card)\n    .split('\\n')\n    .map(l => l.trim())\n    .filter(Boolean);\n\n  if (!lines.length) continue;\n\n  // Titre = première ligne\n  const title = lines[0] || '';\n\n  // État = ligne contenant \"|\"\n  const stateLine = lines.find(l => l.includes('|')) || '';\n  const state = stateLine ? stateLine.split('|')[0].trim() : '';\n\n  // Prix = ligne contenant \"EUR\"\n  const priceLine = lines.find(l => l.match(/\\d+[,\\.]\\d+\\s*EUR/)) || '';\n  const price = priceLine ? priceLine.trim() : '';\n\n  results.push({\n    source: \"ebay\",\n    title,\n    state,\n    price\n  });\n}\n\nreturn results.slice(0, 20);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -208
+      ],
+      "id": "0aaedc64-6d0a-4957-8a13-0edbf3833898",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "cards",
+              "cssSelector": ".su-card-container.su-card-container--vertical",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -608,
+        -208
+      ],
+      "id": "a2561b0d-72b6-41ab-bd54-e1159414b3bd",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "a14e3aa2-5032-4fd7-9446-87a3edc161b0",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1680,
+        -400
+      ],
+      "id": "35f3b63a-27ce-4626-8028-849c537792c3",
+      "name": "Webhook",
+      "webhookId": "a14e3aa2-5032-4fd7-9446-87a3edc161b0"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  body: {\n    brand: $json.body.brand,\n    type: $json.body.type,\n    material: $json.body.material,\n    size: $json.body.size,\n    color: $json.body.color,\n    condition: $json.body.condition\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1472,
+        -400
+      ],
+      "id": "e4ddb008-de6d-47e0-a916-3517938d54e8",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9c3e8718-9448-40ad-b85d-2813afa1e501",
+              "name": "leboncoin_search_url",
+              "value": "=https://www.leboncoin.fr/recherche?text={{ $json.body.brand }}+{{ $json.body.type }}+{{ $json.body.material }}+{{ $json.body.size }}+{{ $json.body.color }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1104,
+        -432
+      ],
+      "id": "f479f70b-1bfd-4132-813b-67e97b620b2f",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9c3e8718-9448-40ad-b85d-2813afa1e501",
+              "name": "vinted_search_url",
+              "value": "=https://www.vinted.fr/catalog?search_text={{ $json.body.brand }}%20{{ $json.body.type }}%20{{ $json.body.material }}%20{{ $json.body.size }}%20{{ $json.body.color }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1104,
+        -608
+      ],
+      "id": "8f3d3225-49a3-479b-82af-d5b5cb423ab3",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "url": "=https://r.jina.ai/{{ $json.leboncoin_search_url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Return-Format",
+              "value": "html"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -848,
+        -400
+      ],
+      "id": "9e17684b-64cc-47cd-a161-571832a3ecd5",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vymindFjXMlQRsBy",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://r.jina.ai/{{ $json.vinted_search_url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Return-Format",
+              "value": "html"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -848,
+        -608
+      ],
+      "id": "0d4864bd-e826-4073-8434-640c1541b893",
+      "name": "HTTP Request2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vymindFjXMlQRsBy",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "cards",
+              "cssSelector": ".styles_adCard__KJ0Nl",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -608,
+        -400
+      ],
+      "id": "a661d223-a454-4b19-bab5-d9d775251b86",
+      "name": "HTML1"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "cards",
+              "cssSelector": ".new-item-box__container",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -608,
+        -608
+      ],
+      "id": "263bb007-145f-4d3b-bd08-fe45830e3aaf",
+      "name": "HTML2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cards = $json.cards;\n\nif (!Array.isArray(cards)) {\n  return [{ error: 'cards n’est pas un tableau' }];\n}\n\nconst results = [];\n\nfor (const card of cards) {\n  if (!card) continue;\n\n  const lines = String(card)\n    .split('\\n')\n    .map(l => l.trim())\n    .filter(Boolean);\n\n  if (!lines.length) continue;\n\n  // Titre : première ligne non vide\n  const title = lines[0] || '';\n\n  // Prix : chercher une ligne avec le symbole €\n  const priceLine = lines.find(l => l.match(/\\d+\\s*€/)) || '';\n  const price = priceLine ? priceLine.replace(/\\s+/g, ' ').trim() : '';\n\n  results.push({\n    source: \"leboncoin\",\n    title,\n    price,\n  });\n}\n\n// On retourne directement un tableau d'objets JSON (comme Vinted)\nreturn results.slice(0, 20);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -400
+      ],
+      "id": "7b7ba573-eb63-4a08-bc45-683775b85cfb",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Récupérer les cartes Vinted\nlet cards = $json.cards || [];\n\n// 2. Tableau final\nlet results = [];\n\n// 3. Fonction d'extraction\nfunction extract(text, regex) {\n  const m = text.match(regex);\n  return m ? m[1].trim() : null;\n}\n\n// 4. Boucle sur chaque carte\nfor (let card of cards) {\n\n  // Convertir la carte en texte\n  let text = String(card);\n\n  // Extraire les champs\n  let item = {\n    source: \"vinted\",\n    title: extract(text, /^(.+?), marque:/m),\n    brand: extract(text, /marque:\\s*([^,]+)/i),\n    condition: extract(text, /état:\\s*([^,]+)/i),\n    size: extract(text, /taille:\\s*([^,]+)/i),\n    price: extract(text, /(\\d+,\\d+)\\s*€/)\n  };\n\n  results.push(item);\n}\n\n// 5. Retourner seulement les 20 premiers items\nreturn results.slice(0, 20);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -608
+      ],
+      "id": "65168cd1-d74b-4988-8c3b-819bd2ebc6bd",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// On récupère tous les items venant des 3 nodes\nconst all = $input.all();\n\n// On prépare les tableaux\nconst ebay = [];\nconst vinted = [];\nconst leboncoin = [];\n\n// On trie automatiquement selon \"source\"\nfor (const item of all) {\n  const data = item.json;\n\n  if (data.source === \"ebay\") {\n    ebay.push(data);\n  } else if (data.source === \"vinted\") {\n    vinted.push(data);\n  } else if (data.source === \"leboncoin\") {\n    leboncoin.push(data);\n  }\n}\n\n// On renvoie un JSON propre\nreturn {\n  ebay,\n  vinted,\n  leboncoin\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        -400
+      ],
+      "id": "4dd6f5a8-37d7-4cd1-96ee-5e0514f2cf20",
+      "name": "Code in JavaScript5"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        368,
+        -448
+      ],
+      "id": "8de3a074-5733-49c7-be90-82476640c968",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -208,
+        -416
+      ],
+      "id": "9b6f9434-460d-4faf-81dc-22831514ca66",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTML1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "HTML2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "e5685b09-24de-45b6-8cb6-fefb837d8a3f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1bc54708c24e04d77fc5a49d9603635d1cede747062e2d11a41f335b7addda05"
+  },
+  "id": "s36YLwM9SUDal5J2",
+  "tags": []
+}
